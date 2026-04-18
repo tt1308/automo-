@@ -1,0 +1,585 @@
+
+ html>
+ <html lang="vi">
+ <head>
+     <meta charset="UTF-8">
+     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <title>Hệ Thống Quản Lý Xe Giao Hàng Tự Động (Static)</title>
+     <style>
+         * {
+             margin: 0;
+             padding: 0;
+             box-sizing: border-box;
+         }
+         
+         body {
+             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             min-height: 100vh;
+             padding: 20px;
+         }
+         
+         .container {
+             max-width: 1400px;
+             margin: 0 auto;
+             background: white;
+             border-radius: 10px;
+             box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+             overflow: hidden;
+         }
+         
+         header {
+             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+             color: white;
+             padding: 20px;
+             text-align: center;
+         }
+         
+         .main-grid {
+             display: grid;
+             grid-template-columns: 2fr 1fr;
+             gap: 20px;
+             padding: 20px;
+         }
+         
+         .panel {
+             background: #f8f9fa;
+             border-radius: 8px;
+             padding: 20px;
+             border: 1px solid #dee2e6;
+         }
+         
+         .panel h2 {
+             margin-bottom: 15px;
+             color: #333;
+             border-bottom: 2px solid #667eea;
+             padding-bottom: 10px;
+         }
+         
+         #map {
+             width: 100%;
+             height: 400px;
+             background: #e9ecef;
+             border-radius: 5px;
+             border: 2px solid #dee2e6;
+         }
+         
+         button {
+             padding: 10px 15px;
+             border: none;
+             border-radius: 5px;
+             cursor: pointer;
+             font-weight: bold;
+             transition: all 0.3s;
+         }
+         
+         .btn-primary {
+             background: #667eea;
+             color: white;
+         }
+         
+         .btn-primary:hover {
+             background: #5568d3;
+         }
+         
+         .btn-danger {
+             background: #e74c3c;
+             color: white;
+         }
+         
+         .btn-warning {
+             background: #f39c12;
+             color: white;
+         }
+         
+         .btn-success {
+             background: #27ae60;
+             color: white;
+         }
+         
+         .controls {
+             display: grid;
+             grid-template-columns: 1fr 1fr;
+             gap: 10px;
+             margin-bottom: 20px;
+         }
+         
+         .info-grid {
+             display: grid;
+             grid-template-columns: 1fr 1fr;
+             gap: 15px;
+         }
+         
+         .info-box {
+             background: white;
+             padding: 15px;
+             border-radius: 5px;
+             border-left: 4px solid #667eea;
+         }
+         
+         .info-value {
+             font-size: 1.4em;
+             font-weight: bold;
+             color: #333;
+         }
+         
+         .sensor-display {
+             display: flex;
+             gap: 10px;
+             margin: 10px 0;
+         }
+         
+         .sensor {
+             width: 30px;
+             height: 30px;
+             border-radius: 50%;
+             background: #e9ecef;
+             border: 2px solid #667eea;
+             display: flex;
+             align-items: center;
+             justify-content: center;
+             font-weight: bold;
+             font-size: 0.8em;
+         }
+         
+         .sensor.active {
+             background: #667eea;
+             color: white;
+         }
+         
+         .status-badge {
+             display: inline-block;
+             padding: 5px 10px;
+             border-radius: 20px;
+             font-size: 0.9em;
+             font-weight: bold;
+         }
+         
+         .status-idle {
+             background: #e9ecef;
+             color: #666;
+         }
+         
+         .status-moving {
+             background: #d4edda;
+             color: #155724;
+         }
+         
+         .waypoint-list {
+             list-style: none;
+             max-height: 200px;
+             overflow-y: auto;
+         }
+         
+         .waypoint-item {
+             background: white;
+             padding: 10px;
+             margin: 5px 0;
+             border-radius: 5px;
+             border-left: 4px solid #667eea;
+             display: flex;
+             justify-content: space-between;
+             align-items: center;
+         }
+         
+         .waypoint-item.current {
+             background: #d4edda;
+             border-left-color: #27ae60;
+         }
+         
+         .manual-control {
+             display: grid;
+             grid-template-columns: repeat(3, 1fr);
+             gap: 10px;
+             margin: 20px 0;
+         }
+         
+         .arrow-btn {
+             padding: 20px;
+             font-size: 1.2em;
+             height: 80px;
+         }
+         
+         @media (max-width: 768px) {
+             .main-grid {
+                 grid-template-columns: 1fr;
+             }
+             
+             .controls {
+                 grid-template-columns: 1fr;
+             }
+         }
+     </style>
+ </head>
+ <body>
+     <div class="container">
+         <header>
+             <h1>🤖 Xe Giao Hàng Tự Động (Static Test)</h1>
+             <p>Mô phỏng robot giao hàng - Test tĩnh</p>
+         </header>
+         
+         <div class="main-grid">
+             <div>
+                 <div class="panel">
+                     <h2>📍 Bản Đồ</h2>
+                     <canvas id="map"></canvas>
+                 </div>
+                 
+                 <div class="panel">
+                     <h2>🎮 Điều Khiển Thủ Công</h2>
+                     <div class="manual-control">
+                         <div></div>
+                         <button class="arrow-btn btn-primary" onclick="moveForward()">⬆️</button>
+                         <div></div>
+                         
+                         <button class="arrow-btn btn-primary" onclick="moveLeft()">⬅️</button>
+                         <button class="arrow-btn btn-danger" onclick="motorStop()">⏹️</button>
+                         <button class="arrow-btn btn-primary" onclick="moveRight()">➡️</button>
+                         
+                         <div></div>
+                         <button class="arrow-btn btn-primary" onclick="moveBackward()">⬇️</button>
+                         <div></div>
+                     </div>
+                 </div>
+             </div>
+             
+             <div>
+                 <div class="panel">
+                     <h2>📊 Trạng Thái Robot</h2>
+                     <div class="info-grid">
+                         <div class="info-box">
+                             <div>Trạng Thái:</div>
+                             <div>
+                                 <span id="status" class="status-badge status-idle">Idle</span>
+                             </div>
+                         </div>
+                         <div class="info-box">
+                             <div>Pin:</div>
+                             <div class="info-value" id="battery">100%</div>
+                         </div>
+                         
+                         <div class="info-box">
+                             <div>Vị Trí X:</div>
+                             <div class="info-value" id="posX">0.0</div>
+                         </div>
+                         <div class="info-box">
+                             <div>Vị Trí Y:</div>
+                             <div class="info-value" id="posY">0.0</div>
+                         </div>
+                     </div>
+                     
+                     <h3 style="margin-top: 20px; margin-bottom: 10px;">🔍 Cảm Biến Theo Line</h3>
+                     <div class="sensor-display" id="lineSensors">
+                         <div class="sensor">L</div>
+                         <div class="sensor">C</div>
+                         <div class="sensor">R</div>
+                     </div>
+                     
+                     <h3 style="margin-top: 15px; margin-bottom: 10px;">📏 Cảm Biến Khoảng Cách</h3>
+                     <div class="sensor-display" id="distanceSensors">
+                         <div class="sensor">L</div>
+                         <div class="sensor">C</div>
+                         <div class="sensor">R</div>
+                     </div>
+                 </div>
+                 
+                 <div class="panel">
+                     <h2>🎯 Điều Khiển Mission</h2>
+                     <div class="controls">
+                         <button class="btn-primary" onclick="startMission()">▶️ Bắt Đầu</button>
+                         <button class="btn-warning" onclick="pauseMission()">⏸️ Tạm Dừng</button>
+                         <button class="btn-warning" onclick="resumeMission()">▶️ Tiếp Tục</button>
+                         <button class="btn-danger" onclick="stopMission()">⏹️ Dừng</button>
+                     </div>
+                     
+                     <h3>📍 Điểm Đến (Waypoints)</h3>
+                     <ul class="waypoint-list" id="waypointList"></ul>
+                     
+                     <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px;">
+                         <input type="number" id="newWaypointX" placeholder="X" style="width: 48%; padding: 8px; margin-right: 2%; border: 1px solid #ddd; border-radius: 3px;">
+                         <input type="number" id="newWaypointY" placeholder="Y" style="width: 48%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                         <button class="btn-success" onclick="addWaypoint()" style="width: 100%; margin-top: 10px;">➕ Thêm Waypoint</button>
+                     </div>
+                 </div>
+             </div>
+         </div>
+     </div>
+     
+     <script>
+        const canvas = document.getElementById('map');
+        const ctx = canvas.getContext('2d');
+        const directions = ['Bắc', 'Đông', 'Nam', 'Tây'];
+        const gridSize = 10;
+        const mapRange = 30;
+        let missionTimer = null;
+
+        const state = {
+            x: 1,
+            y: 1,
+            dirIndex: 1,
+            battery: 100,
+            status: 'idle',
+            lineSensors: [0, 1, 0],
+            distanceSensors: [25, 40, 25],
+            waypoints: [
+                { x: 8, y: 2 },
+                { x: 7, y: 8 },
+                { x: 2, y: 7 }
+            ],
+            currentWaypoint: 0,
+            missionPaused: false
+        };
+
+        function resizeCanvas() {
+             canvas.width = canvas.offsetWidth;
+             canvas.height = canvas.offsetHeight;
+            renderMap();
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#e9ecef';
+             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = '#c8d2dc';
+             ctx.lineWidth = 1;
+
+            for (let i = 0; i <= gridSize; i++) {
+                const x = (i / gridSize) * canvas.width;
+                const y = (i / gridSize) * canvas.height;
+                 ctx.beginPath();
+                 ctx.moveTo(x, 0);
+                 ctx.lineTo(x, canvas.height);
+                 ctx.stroke();
+                 ctx.beginPath();
+                 ctx.moveTo(0, y);
+                 ctx.lineTo(canvas.width, y);
+                 ctx.stroke();
+             }
+        }
+
+        function mapToPixel(value) {
+            return ((value - 1) / (gridSize - 1)) * canvas.width;
+        }
+
+        function renderMap() {
+            drawGrid();
+            drawWaypoints();
+            drawRobot();
+        }
+
+        function drawWaypoints() {
+            state.waypoints.forEach((wp, idx) => {
+                const x = mapToPixel(wp.x);
+                const y = mapToPixel(wp.y);
+                ctx.fillStyle = idx === state.currentWaypoint ? '#27ae60' : '#667eea';
+                ctx.beginPath();
+                ctx.arc(x, y, 8, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 12px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(idx + 1, x, y);
+            });
+         }
+
+        function drawRobot() {
+            const x = mapToPixel(state.x);
+            const y = mapToPixel(state.y);
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate((state.dirIndex * Math.PI) / 2);
+            ctx.fillStyle = '#ff6b6b';
+            ctx.fillRect(-14, -12, 28, 24);
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, -6, 14, 12);
+            ctx.restore();
+        }
+
+        function updateDashboard() {
+            document.getElementById('posX').textContent = state.x.toFixed(1);
+            document.getElementById('posY').textContent = state.y.toFixed(1);
+            document.getElementById('battery').textContent = `${state.battery.toFixed(0)}%`;
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = state.status.toUpperCase();
+            statusEl.className = `status-badge status-${state.status}`;
+
+            const lineSensors = document.getElementById('lineSensors').children;
+            state.lineSensors.forEach((value, idx) => {
+                const sensor = lineSensors[idx];
+                if (!sensor) return;
+                if (value === 1) {
+                    sensor.classList.add('active');
+                    sensor.textContent = '1';
+                } else {
+                    sensor.classList.remove('active');
+                    sensor.textContent = '0';
+                }
+            });
+
+            const distanceSensors = document.getElementById('distanceSensors').children;
+            state.distanceSensors.forEach((value, idx) => {
+                const sensor = distanceSensors[idx];
+                if (!sensor) return;
+                sensor.textContent = `${value}cm`;
+            });
+
+            updateWaypointList();
+        }
+
+        function updateWaypointList() {
+            const list = document.getElementById('waypointList');
+            list.innerHTML = state.waypoints.map((wp, idx) => {
+                const activeClass = idx === state.currentWaypoint ? 'current' : '';
+                return `<li class="waypoint-item ${activeClass}"><span>(${wp.x}, ${wp.y})</span><span>#${idx + 1}</span></li>`;
+            }).join('');
+        }
+
+        function clamp(value, min, max) {
+            return Math.min(Math.max(value, min), max);
+        }
+
+        function move(dx, dy) {
+            state.x = clamp(state.x + dx, 1, gridSize);
+            state.y = clamp(state.y + dy, 1, gridSize);
+            state.status = 'moving';
+            updateSensors();
+            renderMap();
+            updateDashboard();
+        }
+
+        function updateSensors() {
+            state.lineSensors = [
+                state.x < 4 ? 1 : 0,
+                state.x >= 4 && state.x <= 7 ? 1 : 0,
+                state.x > 7 ? 1 : 0
+            ];
+            state.distanceSensors = [
+                clamp(30 - state.x * 3, 5, 50),
+                clamp(30 - state.y * 3, 5, 50),
+                clamp(state.x * 2, 5, 50)
+            ];
+        }
+
+        function moveForward() {
+            const deltas = [ [0, -1], [1, 0], [0, 1], [-1, 0] ];
+            const [dx, dy] = deltas[state.dirIndex];
+            move(dx, dy);
+        }
+
+        function moveBackward() {
+            const deltas = [ [0, 1], [-1, 0], [0, -1], [1, 0] ];
+            const [dx, dy] = deltas[state.dirIndex];
+            move(dx, dy);
+        }
+
+        function moveLeft() { move(-1, 0); }
+        function moveRight() { move(1, 0); }
+
+        function rotateLeft() {
+            state.dirIndex = (state.dirIndex + 3) % 4;
+            state.status = 'moving';
+            renderMap();
+            updateDashboard();
+         }
+
+        function rotateRight() {
+            state.dirIndex = (state.dirIndex + 1) % 4;
+            state.status = 'moving';
+            renderMap();
+            updateDashboard();
+         }
+
+        function motorStop() {
+            state.status = 'idle';
+            renderMap();
+            updateDashboard();
+        }
+
+         function addWaypoint() {
+            const x = parseInt(document.getElementById('newWaypointX').value, 10);
+            const y = parseInt(document.getElementById('newWaypointY').value, 10);
+            if (Number.isNaN(x) || Number.isNaN(y) || x < 1 || x > gridSize || y < 1 || y > gridSize) {
+                alert('Nhập X và Y hợp lệ từ 1 đến ' + gridSize);
+                 return;
+             }
+            state.waypoints.push({ x, y });
+            document.getElementById('newWaypointX').value = '';
+            document.getElementById('newWaypointY').value = '';
+            updateDashboard();
+            renderMap();
+        }
+
+        function startMission() {
+            if (state.waypoints.length === 0) {
+                alert('Vui lòng thêm waypoint trước khi bắt đầu.');
+                return;
+            }
+            state.status = 'moving';
+            state.missionPaused = false;
+            if (missionTimer) clearInterval(missionTimer);
+            missionTimer = setInterval(() => {
+                if (state.missionPaused) return;
+                const target = state.waypoints[state.currentWaypoint];
+                const dx = Math.sign(target.x - state.x);
+                const dy = Math.sign(target.y - state.y);
+                if (dx === 0 && dy === 0) {
+                    state.currentWaypoint = (state.currentWaypoint + 1) % state.waypoints.length;
+                    return;
+                }
+                move(dx, dy);
+                if (state.battery > 0) state.battery = clamp(state.battery - 0.2, 0, 100);
+            }, 350);
+            updateDashboard();
+        }
+
+        function pauseMission() {
+            state.missionPaused = true;
+            state.status = 'idle';
+            updateDashboard();
+        }
+
+        function resumeMission() {
+            if (!missionTimer) startMission();
+            state.missionPaused = false;
+            state.status = 'moving';
+            updateDashboard();
+        }
+
+        function stopMission() {
+            if (missionTimer) clearInterval(missionTimer);
+            missionTimer = null;
+            state.status = 'idle';
+            updateDashboard();
+        }
+
+        window.addEventListener('keydown', (event) => {
+            if (event.target.tagName === 'INPUT') return;
+            switch (event.key) {
+                case 'ArrowUp': moveForward(); break;
+                case 'ArrowDown': moveBackward(); break;
+                case 'ArrowLeft': moveLeft(); break;
+                case 'ArrowRight': moveRight(); break;
+                case 'a': case 'A': rotateLeft(); break;
+                case 'd': case 'D': rotateRight(); break;
+                case 's': case 'S': motorStop(); break;
+            }
+        });
+
+        window.addEventListener('resize', resizeCanvas);
+
+         window.addEventListener('load', () => {
+            resizeCanvas();
+            updateDashboard();
+            setInterval(() => {
+                if (state.status === 'moving' && state.battery > 0) {
+                    state.battery = clamp(state.battery - 0.05, 0, 100);
+                }
+                updateDashboard();
+                renderMap();
+            }, 1000);
+         });
+     </script>
+ </body>
+ </html>
