@@ -1,0 +1,489 @@
+html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ Thống Quản Lý Xe Giao Hàng Tự Động (Static)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            padding: 20px;
+        }
+        
+        .panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .panel h2 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        #map {
+            width: 100%;
+            height: 400px;
+            background: #e9ecef;
+            border-radius: 5px;
+            border: 2px solid #dee2e6;
+        }
+        
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .info-box {
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .info-value {
+            font-size: 1.4em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .sensor-display {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
+        }
+        
+        .sensor {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #e9ecef;
+            border: 2px solid #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+        
+        .sensor.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .status-idle {
+            background: #e9ecef;
+            color: #666;
+        }
+        
+        .status-moving {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .waypoint-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .waypoint-item {
+            background: white;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .waypoint-item.current {
+            background: #d4edda;
+            border-left-color: #27ae60;
+        }
+        
+        .manual-control {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .arrow-btn {
+            padding: 20px;
+            font-size: 1.2em;
+            height: 80px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🤖 Xe Giao Hàng Tự Động (Static Test)</h1>
+            <p>Mô phỏng robot giao hàng - Test tĩnh</p>
+        </header>
+        
+        <div class="main-grid">
+            <div>
+                <div class="panel">
+                    <h2>📍 Bản Đồ</h2>
+                    <canvas id="map"></canvas>
+                </div>
+                
+                <div class="panel">
+                    <h2>🎮 Điều Khiển Thủ Công</h2>
+                    <div class="manual-control">
+                        <div></div>
+                        <button class="arrow-btn btn-primary" onclick="moveForward()">⬆️</button>
+                        <div></div>
+                        
+                        <button class="arrow-btn btn-primary" onclick="moveLeft()">⬅️</button>
+                        <button class="arrow-btn btn-danger" onclick="motorStop()">⏹️</button>
+                        <button class="arrow-btn btn-primary" onclick="moveRight()">➡️</button>
+                        
+                        <div></div>
+                        <button class="arrow-btn btn-primary" onclick="moveBackward()">⬇️</button>
+                        <div></div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <div class="panel">
+                    <h2>📊 Trạng Thái Robot</h2>
+                    <div class="info-grid">
+                        <div class="info-box">
+                            <div>Trạng Thái:</div>
+                            <div>
+                                <span id="status" class="status-badge status-idle">Idle</span>
+                            </div>
+                        </div>
+                        <div class="info-box">
+                            <div>Pin:</div>
+                            <div class="info-value" id="battery">100%</div>
+                        </div>
+                        
+                        <div class="info-box">
+                            <div>Vị Trí X:</div>
+                            <div class="info-value" id="posX">0.0</div>
+                        </div>
+                        <div class="info-box">
+                            <div>Vị Trí Y:</div>
+                            <div class="info-value" id="posY">0.0</div>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px; margin-bottom: 10px;">🔍 Cảm Biến Theo Line</h3>
+                    <div class="sensor-display" id="lineSensors">
+                        <div class="sensor">L</div>
+                        <div class="sensor">C</div>
+                        <div class="sensor">R</div>
+                    </div>
+                    
+                    <h3 style="margin-top: 15px; margin-bottom: 10px;">📏 Cảm Biến Khoảng Cách</h3>
+                    <div class="sensor-display" id="distanceSensors">
+                        <div class="sensor">L</div>
+                        <div class="sensor">C</div>
+                        <div class="sensor">R</div>
+                    </div>
+                </div>
+                
+                <div class="panel">
+                    <h2>🎯 Điều Khiển Mission</h2>
+                    <div class="controls">
+                        <button class="btn-primary" onclick="startMission()">▶️ Bắt Đầu</button>
+                        <button class="btn-warning" onclick="pauseMission()">⏸️ Tạm Dừng</button>
+                        <button class="btn-warning" onclick="resumeMission()">▶️ Tiếp Tục</button>
+                        <button class="btn-danger" onclick="stopMission()">⏹️ Dừng</button>
+                    </div>
+                    
+                    <h3>📍 Điểm Đến (Waypoints)</h3>
+                    <ul class="waypoint-list" id="waypointList"></ul>
+                    
+                    <div style="margin-top: 15px; padding: 10px; background: white; border-radius: 5px;">
+                        <input type="number" id="newWaypointX" placeholder="X" style="width: 48%; padding: 8px; margin-right: 2%; border: 1px solid #ddd; border-radius: 3px;">
+                        <input type="number" id="newWaypointY" placeholder="Y" style="width: 48%; padding: 8px; border: 1px solid #ddd; border-radius: 3px;">
+                        <button class="btn-success" onclick="addWaypoint()" style="width: 100%; margin-top: 10px;">➕ Thêm Waypoint</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const API_BASE = 'http://localhost:5000/api';
+        
+        // Vẽ bản đồ
+        function drawMap() {
+            const canvas = document.getElementById('map');
+            const ctx = canvas.getContext('2d');
+            
+            // Đặt kích thước canvas
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Vẽ grid
+            ctx.fillStyle = '#f0f0f0';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.strokeStyle = '#ddd';
+            ctx.lineWidth = 1;
+            for (let i = 0; i <= 20; i++) {
+                const x = (i / 20) * canvas.width;
+                const y = (i / 20) * canvas.height;
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            updateMap();
+        }
+        
+        function updateMap() {
+            fetch(`${API_BASE}/telemetry`)
+                .then(r => r.json())
+                .then(data => {
+                    const canvas = document.getElementById('map');
+                    const ctx = canvas.getContext('2d');
+                    
+                    // Vẽ waypoints
+                    fetch(`${API_BASE}/waypoints`)
+                        .then(r => r.json())
+                        .then(wpData => {
+                            wpData.waypoints.forEach((wp, idx) => {
+                                const x = (wp.x / 30) * canvas.width;
+                                const y = (wp.y / 30) * canvas.height;
+                                
+                                ctx.fillStyle = '#667eea';
+                                ctx.beginPath();
+                                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                                ctx.fill();
+                                
+                                ctx.fillStyle = '#333';
+                                ctx.font = '10px Arial';
+                                ctx.textAlign = 'center';
+                                ctx.fillText(idx + 1, x, y + 15);
+                            });
+                        });
+                        
+                    // Vẽ vị trí robot
+                    const robotX = (data.position.x / 30) * canvas.width;
+                    const robotY = (data.position.y / 30) * canvas.height;
+                    
+                    ctx.fillStyle = '#27ae60';
+                    ctx.fillRect(robotX - 10, robotY - 10, 20, 20);
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.font = 'bold 12px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('🤖', robotX, robotY);
+                });
+        }
+        
+        // Cập nhật dữ liệu
+        function updateTelemetry() {
+            fetch(`${API_BASE}/telemetry`)
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('posX').textContent = data.position.x.toFixed(1);
+                    document.getElementById('posY').textContent = data.position.y.toFixed(1);
+                    document.getElementById('battery').textContent = data.battery.toFixed(0) + '%';
+                    document.getElementById('batteryFill').style.width = data.battery + '%';
+                    
+                    const statusEl = document.getElementById('status');
+                    statusEl.textContent = data.status.toUpperCase();
+                    statusEl.className = 'status-badge status-' + data.status;
+                    
+                    // Cập nhật cảm biến line
+                    const lineSensors = document.getElementById('lineSensors').children;
+                    data.line_sensors.forEach((val, idx) => {
+                        if (val === 1) {
+                            lineSensors[idx].classList.add('active');
+                        } else {
+                            lineSensors[idx].classList.remove('active');
+                        }
+                    });
+                    
+                    // Cập nhật cảm biến khoảng cách
+                    const distSensors = document.getElementById('distanceSensors').children;
+                    data.distance_sensors.forEach((val, idx) => {
+                        distSensors[idx].textContent = val + 'cm';
+                    });
+                    
+                    updateMap();
+                });
+                
+            fetch(`${API_BASE}/waypoints`)
+                .then(r => r.json())
+                .then(data => {
+                    const list = document.getElementById('waypointList');
+                    list.innerHTML = data.waypoints.map((wp, idx) => 
+                        `<li class="waypoint-item"><span>(${wp.x}, ${wp.y})</span><span>#${idx + 1}</span></li>`
+                    ).join('');
+                });
+        }
+        
+        // Điều khiển motor
+        function controlMotor(left, right) {
+            fetch(`${API_BASE}/motor/control`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({left, right})
+            });
+        }
+        
+        function moveForward() { controlMotor(80, 80); }
+        function moveBackward() { controlMotor(-80, -80); }
+        function moveLeft() { controlMotor(-60, 60); }
+        function moveRight() { controlMotor(60, -60); }
+        function motorStop() { controlMotor(0, 0); }
+        
+        // Điều khiển mission
+        function startMission() { 
+            fetch(`${API_BASE}/mission/start`, {method: 'POST'});
+        }
+        function stopMission() { 
+            fetch(`${API_BASE}/mission/stop`, {method: 'POST'});
+        }
+        function pauseMission() { 
+            fetch(`${API_BASE}/mission/pause`, {method: 'POST'});
+        }
+        function resumeMission() { 
+            fetch(`${API_BASE}/mission/resume`, {method: 'POST'});
+        }
+        
+        // Quản lý waypoints
+        function addWaypoint() {
+            const x = parseFloat(document.getElementById('newWaypointX').value);
+            const y = parseFloat(document.getElementById('newWaypointY').value);
+            
+            if (isNaN(x) || isNaN(y)) {
+                alert('Nhập X và Y hợp lệ');
+                return;
+            }
+            
+            fetch(`${API_BASE}/waypoints`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    waypoints: [...document.querySelectorAll('.waypoint-item')].map(el => {
+                        const [xStr, yStr] = el.textContent.match(/\d+/g);
+                        return {x: parseInt(xStr), y: parseInt(yStr)};
+                    }).concat({x, y})
+                })
+            }).then(() => {
+                document.getElementById('newWaypointX').value = '';
+                document.getElementById('newWaypointY').value = '';
+                updateTelemetry();
+            });
+        }
+        
+        // Khởi động
+        window.addEventListener('load', () => {
+            drawMap();
+            updateTelemetry();
+            setInterval(updateTelemetry, 1000);
+        });
+    </script>
+</body>
+</html>
